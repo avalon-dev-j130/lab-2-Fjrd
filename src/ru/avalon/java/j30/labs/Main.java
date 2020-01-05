@@ -1,6 +1,11 @@
 package ru.avalon.java.j30.labs;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Properties;
@@ -18,13 +23,10 @@ public class Main {
 
     /**
      * Точка входа в приложение
-     * 
+     *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
-        /*
-         * TODO #01 Подключите к проекту все библиотеки, необходимые для соединения с СУБД.
-         */
+    public static void main(String[] args) throws SQLException, IOException {
         try (Connection connection = getConnection()) {
             ProductCode code = new ProductCode("MO", 'N', "Movies");
             code.save(connection);
@@ -34,45 +36,52 @@ public class Main {
             code.save(connection);
             printAllCodes(connection);
         }
-        /*
-         * TODO #14 Средствами отладчика проверьте корректность работы программы
-         */
     }
+
     /**
      * Выводит в кодсоль все коды товаров
-     * 
+     *
      * @param connection действительное соединение с базой данных
-     * @throws SQLException 
-     */    
+     * @throws SQLException
+     */
     private static void printAllCodes(Connection connection) throws SQLException {
         Collection<ProductCode> codes = ProductCode.all(connection);
         for (ProductCode code : codes) {
             System.out.println(code);
         }
     }
+
     /**
      * Возвращает URL, описывающий месторасположение базы данных
-     * 
+     *
      * @return URL в виде объекта класса {@link String}
      */
     private static String getUrl() {
-        /*
-         * TODO #02 Реализуйте метод getUrl
-         */
-        throw new UnsupportedOperationException("Not implemented yet!");
+        Properties config = getProperties();
+        return config.getProperty("database.driver") + "://" +
+                config.getProperty("database.host") + ":" +
+                config.getProperty("database.port") + "/" +
+                config.getProperty("database.name");
+
     }
+
     /**
      * Возвращает параметры соединения
-     * 
-     * @return Объект класса {@link Properties}, содержащий параметры user и 
+     *
+     * @return Объект класса {@link Properties}, содержащий параметры user и
      * password
      */
     private static Properties getProperties() {
-        /*
-         * TODO #03 Реализуйте метод getProperties
-         */
-        throw new UnsupportedOperationException("Not implemented yet!");
+        String configsPath = "resources/config.properties";
+        Properties configs = new Properties();
+        try (InputStream stream = ClassLoader.getSystemResourceAsStream(configsPath)) {
+            configs.load(stream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return configs;
     }
+
     /**
      * Возвращает соединение с базой данных Sample
      * 
@@ -80,10 +89,9 @@ public class Main {
      * @throws SQLException 
      */
     private static Connection getConnection() throws SQLException {
-        /*
-         * TODO #04 Реализуйте метод getConnection
-         */
-        throw new UnsupportedOperationException("Not implemented yet!");
+        String url = getUrl();
+        String user = getProperties().getProperty("database.user");
+        String password = getProperties().getProperty("database.password");
+        return DriverManager.getConnection(url, user, password);
     }
-    
 }
